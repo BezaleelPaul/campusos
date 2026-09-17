@@ -2,6 +2,7 @@ package com.campusos.database;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,29 +12,82 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * SQLite lifecycle: file location, schema creation, seed loading.
- * All SQL runs via PreparedStatement in repositories (never string concat).
+ * Database lifecycle with two dialects:
+ * - SQLite file (default, local + desktop demo)
+ * - PostgreSQL when DATABASE_URL (postgres://…) or JDBC_DATABASE_URL is set (Render)
+ *
+ * All app SQL runs via PreparedStatement in repositories (never string concat).
  */
 public final class DatabaseManager {
 
     private static final String DB_FILE = "campusos.db";
     private static String jdbcUrl;
+    private static String dbUser;
+    private static String dbPassword;
+    private static boolean postgres;
 
     private DatabaseManager() {}
 
     public static synchronized void init() {
-        Path db = dbPath();
-        jdbcUrl = "jdbc:sqlite:" + db.toAbsolutePath();
-        boolean fresh = !Files.exists(db);
-        try {
-            Files.createDirectories(db.getParent() == null ? Path.of(".") : db.getParent());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        String databaseUrl = System.getenv("DATABASE_URL");
+        String jdbcEnv = System.getenv("JDBC_DATABASE_URL");
+        if (jdbcEnv != null && !jdbcEnv.isBlank()) {
+            jdbcUrl = jdbcEnv.strip();
+            dbUser = getenv("JDBC_USER");
+            dbPassword = getenv("JDBC_PASSWORD");
+            postgres = jdbcUrl.startsWith("jdbc:postgresql:");
+        } else if (databaseUrl != null && databaseUrl.startsWith("postgres")) {
+            URI uri = URI.create(databaseUrl);
+            String userInfo = uri.getUserInfo() == null ? ":" : uri.getUserInfo();
+            String[] parts = userInfo.split(":", 2);
+            dbUser = parts[0];
+            dbPassword = parts.length > 1 ? parts[1] : "";
+            int port = uri.getPort() == -1 ? 5432 : uri.getPort();
+            jdbcUrl = "jdbc:postgresql://" + uri.getHost() + ":" + port + uri.getPath() + "?sslmode=require";
+            postgres = true;
+        } else {
+            Path db = dbPath();
+            jdbcUrl = "jdbc:sqlite:" + db.toAbsolutePath();
+            dbUser = null;
+            dbPassword = null;
+            postgres = false;
+            boolean fresh = !Files.exists(db);
+            try {
+                Files.createDirectories(db.getParent() == null ? Path.of(".") : db.getParent());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            runResource("/database/schema.sql");
+            if (fresh) {
+                runResource("/database/seed.sql");
+            }
+            return;
         }
-        runResource("/database/schema.sql");
-        if (fresh) {
-            runResource("/database/seed.sql");
+        if (isFreshPostgres()) {
+            runResource("/database/schema-postgres.sql");
+            runResource("/database/seed-postgres.sql");
+        } else {
+            runResource("/database/schema-postgres.sql");
         }
+    }
+
+    public static boolean isPostgres() {
+        return postgres;
+    }
+
+    private static boolean isFreshPostgres() {
+        try (Connection c = connectRaw();
+             Statement s = c.createStatement();
+             var rs = s.executeQuery("SELECT 1 FROM users LIMIT 1")) {
+            return false;
+        } catch (SQLException e) {
+            return true;
+        }
+    }
+
+    private static String getenv(String name) {
+        String v = System.getenv(name);
+        return v == null ? null : v.strip();
     }
 
     public static Path dbPath() {
@@ -46,10 +100,14 @@ public final class DatabaseManager {
         if (jdbcUrl == null) {
             init();
         }
-        Connection c = DriverManager.getConnection(jdbcUrl);
-        try (Statement s = c.createStatement()) {
-            s.execute("PRAGMA foreign_keys = ON");
-            s.execute("PRAGMA journal_mode = WAL");
+        Connection c = postgres
+                ? DriverManager.getConnection(jdbcUrl, dbUser, dbPassword)
+                : DriverManager.getConnection(jdbcUrl);
+        if (!postgres) {
+            try (Statement s = c.createStatement()) {
+                s.execute("PRAGMA foreign_keys = ON");
+                s.execute("PRAGMA journal_mode = WAL");
+            }
         }
         return c;
     }
@@ -89,6 +147,8 @@ public final class DatabaseManager {
             Path db = dbPath();
             jdbcUrl = "jdbc:sqlite:" + db.toAbsolutePath();
         }
-        return DriverManager.getConnection(jdbcUrl);
+        return postgres
+                ? DriverManager.getConnection(jdbcUrl, dbUser, dbPassword)
+                : DriverManager.getConnection(jdbcUrl);
     }
 }

@@ -1,13 +1,32 @@
-# API (future REST seam)
+# API (live backend — same service layer as the desktop app)
 
-All services are UI-free and REST-ready. Suggested mapping when adding Spring Boot/Javalin:
+Base: `http://localhost:8080` local, or your Render URL in production.
 
-- POST /api/auth/login, POST /api/auth/logout, POST /api/users
-- GET /api/dashboard?user=
-- GET/POST /api/attendance, GET /api/attendance/summary
-- GET /api/timetable?sem=&sec=
-- GET/POST/PATCH /api/assignments
-- GET /api/exams, GET/POST /api/results
-- GET/PATCH /api/notifications, GET /api/search?q=, GET /api/analytics/top, GET /api/campus/route?from=
+Auth: `POST /api/auth/login {"username","password"}` → `{"token","username","role"}`.
+Send `Authorization: Bearer <token>` on protected routes. Students see only their own
+rows; faculty/admin can write. Lockout after 5 bad passwords applies here too.
 
-Swap DatabaseManager JDBC URL to PostgreSQL; services unchanged.
+| Method | Route | Auth | What |
+|---|---|---|---|
+| GET | /api/health | — | status + db dialect |
+| POST | /api/auth/login | — | bearer token |
+| GET | /api/subjects | — | all subjects |
+| GET | /api/timetable?semester=3&section=A | — | week |
+| GET | /api/assignments | — | priority-ordered |
+| POST | /api/assignments | staff | create |
+| PATCH | /api/assignments | user | `{"id","status"}` (submit) |
+| GET | /api/exams | — | upcoming |
+| GET | /api/attendance?studentId=&target= | own/staff | % + need/safe |
+| POST | /api/attendance | staff | mark |
+| GET | /api/results?studentId= | own/staff | marks + cgpa |
+| POST | /api/results | staff | enter marks |
+| GET | /api/dashboard?username= | own/staff | cards |
+| GET | /api/notifications | user | priority-ordered |
+| POST | /api/notifications | staff | publish |
+| GET | /api/search?q= | — | Trie search |
+| GET | /api/analytics/top | — | Top-K subjects |
+| GET | /api/campus/route | — | Dijkstra map |
+| GET | /api/announcements | — | latest |
+
+Database: SQLite file locally (`~/.campusos/campusos.db`); PostgreSQL on Render via
+`DATABASE_URL` (auto-converted to JDBC + SSL, schema/seed in `schema-postgres.sql`).

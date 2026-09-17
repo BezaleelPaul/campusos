@@ -19,6 +19,29 @@
 </ol>
 <h2>Run</h2>
 <p><code>git clone https://github.com/BezaleelPaul/campusos && cd campusos && mvn test && mvn javafx:run</code></p>
+<h2>Live backend</h2>
+<p id="api-status">Checking API…</p>
+<p id="api-data"></p>
+<script>
+// After Render deploy, set this to your service URL, e.g. https://campusos-api.onrender.com
+const API_BASE = "";
+(function () {
+  var status = document.getElementById("api-status");
+  var data = document.getElementById("api-data");
+  if (!API_BASE) {
+    status.textContent = "API: not deployed yet — desktop app + local API run from the repo.";
+    return;
+  }
+  fetch(API_BASE + "/api/health").then(function (r) { return r.json(); }).then(function (h) {
+    status.textContent = "API: online (" + h.db + ")";
+    return fetch(API_BASE + "/api/assignments");
+  }).then(function (r) { return r.json(); }).then(function (a) {
+    data.textContent = "Live assignments right now: " + a.length + " (fetched from Render).";
+  }).catch(function () {
+    status.textContent = "API: unreachable (free Render services sleep when idle — retry in a minute).";
+  });
+})();
+</script>
 <h2>DSA inside</h2>
 <p>PriorityQueue notifications, Trie search, Heap Top-K, Graph BFS/Dijkstra, sliding window, binary search, sorting.</p>
 <p><a href="https://github.com/BezaleelPaul/campusos">Repo</a> · Releases carry the portable JAR.</p>
