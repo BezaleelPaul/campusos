@@ -130,11 +130,19 @@ public final class DatabaseManager {
     }
 
     static void runScript(String sql) {
+        // Strip full-line `--` comments FIRST. The old code skipped any chunk
+        // starting with `--`, which silently ate the first real statement of any
+        // file beginning with a comment (on Render that was CREATE TABLE users).
+        StringBuilder cleaned = new StringBuilder();
+        for (String line : sql.split("\n")) {
+            if (!line.strip().startsWith("--")) {
+                cleaned.append(line).append('\n');
+            }
+        }
         try (Connection c = connectRaw(); Statement s = c.createStatement()) {
-            for (String stmt : sql.split(";")) {
-                String t = stmt.strip();
-                if (!t.isEmpty() && !t.startsWith("--")) {
-                    s.execute(t);
+            for (String stmt : cleaned.toString().split(";")) {
+                if (!stmt.strip().isEmpty()) {
+                    s.execute(stmt);
                 }
             }
         } catch (SQLException e) {
