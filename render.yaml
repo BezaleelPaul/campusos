@@ -1,0 +1,10 @@
+# Render free web service for the CampusOS API (same service layer as the desktop app).
+services:
+  - type: web
+    name: campusos-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: JAVA_OPTS
+        value: -Xmx256m

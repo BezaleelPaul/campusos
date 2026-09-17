@@ -18,19 +18,23 @@ public class MainShell {
 
     public void show(Stage stage, User user) {
         BorderPane root = new BorderPane();
-        HBox header = new HBox(12, new Label("CampusOS — " + user.username() + " [" + user.role() + "]"));
+        HBox header = new HBox(12, new Label("CampusOS  •  " + user.username() + " [" + user.role() + "]"));
+        header.getStyleClass().add("app-header");
         Button out = new Button("Logout");
         out.setOnAction(e -> {
             auth.logout();
-            stage.setScene(new Scene(new LoginView().build(u -> show(stage, u)), 480, 420));
+            Scene sc = new Scene(new LoginView().build(u -> show(stage, u)), 480, 420);
+            sc.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
+            stage.setScene(sc);
         });
-        Button theme = new Button("Light/Dark");
+        Button theme = new Button("Light / Dark");
         theme.setOnAction(e -> {
             Scene sc = stage.getScene();
-            if (sc.getStylesheets().isEmpty()) {
-                sc.getStylesheets().add(getClass().getResource("/css/dark.css").toExternalForm());
+            String dark = getClass().getResource("/css/dark.css").toExternalForm();
+            if (sc.getStylesheets().contains(dark)) {
+                sc.getStylesheets().remove(dark);
             } else {
-                sc.getStylesheets().clear();
+                sc.getStylesheets().add(dark);
             }
         });
         header.getChildren().addAll(out, theme);

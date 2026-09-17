@@ -19,13 +19,13 @@ public class LoginView {
         VBox box = new VBox(10);
         box.setPadding(new Insets(40));
         Label title = new Label("CampusOS — Login");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold;");
+        title.getStyleClass().add("section-title");
         TextField user = new TextField();
         user.setPromptText("Username (student1)");
         PasswordField pass = new PasswordField();
         pass.setPromptText("Password (password123)");
         Label err = new Label();
-        err.setStyle("-fx-text-fill: #c0392b;");
+        err.getStyleClass().add("error");
         Button btn = new Button("Login");
         btn.setDefaultButton(true);
         btn.setOnAction(e -> {

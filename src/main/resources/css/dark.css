@@ -1,5 +1,20 @@
-.root { -fx-base: #1e1e2e; -fx-background: #11111b; -fx-text-fill: #e6e6fa; }
-.label { -fx-text-fill: #e6e6fa; }
-.button { -fx-background-color: #45475a; -fx-text-fill: white; }
-.text-field { -fx-background-color: #313244; -fx-text-fill: white; }
-.list-view { -fx-background-color: #181825; }
+/* CampusOS modern dark theme — applied ON TOP of app.css */
+.root {
+    -fx-base: #0f172a;
+    -fx-background: #0b1120;
+}
+.app-header { -fx-background-color: linear-gradient(to right, #1e1b4b, #4c1d95); }
+.tab-pane .tab-header-area .tab { -fx-background-color: #1e293b; }
+.tab-pane .tab-header-area .tab:selected { -fx-background-color: #312e81; }
+.tab-pane .tab-header-area .tab .tab-label { -fx-text-fill: #e2e8f0; }
+.tab-content-area { -fx-background-color: #111c33; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 14, 0, 0, 4); }
+.card { -fx-background-color: #16213c; -fx-border-color: #334155; }
+.label { -fx-text-fill: #e2e8f0; }
+.section-title { -fx-text-fill: #c7d2fe; }
+.button { -fx-background-color: #7c3aed; }
+.button:hover { -fx-background-color: #6d28d9; }
+.text-field, .password-field { -fx-background-color: #1e293b; -fx-text-fill: #f1f5f9; -fx-border-color: #475569; -fx-prompt-text-fill: #64748b; }
+.list-view { -fx-background-color: #0f1b30; -fx-border-color: #334155; }
+.list-cell { -fx-background-color: transparent; -fx-text-fill: #e2e8f0; }
+.list-cell:filled:selected { -fx-background-color: #3730a3; -fx-text-fill: white; }
+.error { -fx-text-fill: #f87171; }
