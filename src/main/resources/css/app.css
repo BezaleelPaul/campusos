@@ -62,3 +62,25 @@
 }
 .error { -fx-text-fill: #d13438; }
 .dark .error { -fx-text-fill: #f1707b; }
+
+/* ---- Hero banner + login ---- */
+.hero {
+    -fx-background-color: linear-gradient(to right, #0067c0, #4c1d95);
+    -fx-background-radius: 10;
+    -fx-padding: 22;
+}
+.hero-title { -fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold; }
+.hero-sub { -fx-text-fill: rgba(255, 255, 255, 0.88); -fx-font-size: 13px; }
+.login-title { -fx-font-size: 26px; -fx-font-weight: bold; -fx-alignment: center; }
+.login-sub { -fx-font-size: 12px; -fx-opacity: 0.7; -fx-alignment: center; }
+
+/* ---- Charts (Fluent accent series) ---- */
+.chart-bar { -fx-bar-fill: #0067c0; }
+.chart-series-line { -fx-stroke: #0067c0; -fx-stroke-width: 2.5; }
+.chart-line-symbol { -fx-background-color: #0067c0, white; -fx-background-insets: 0, 2; -fx-padding: 5; }
+.chart-pie-label { -fx-font-size: 11px; }
+.default-color0.chart-pie { -fx-pie-color: #0067c0; }
+.default-color1.chart-pie { -fx-pie-color: #4c1d95; }
+.default-color2.chart-pie { -fx-pie-color: #10893e; }
+.default-color3.chart-pie { -fx-pie-color: #ca5010; }
+.default-color4.chart-pie { -fx-pie-color: #c239b3; }

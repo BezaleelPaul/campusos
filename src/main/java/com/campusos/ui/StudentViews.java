@@ -84,7 +84,16 @@ public class StudentViews {
         VBox b = new VBox(10);
         DashboardService.Summary s = new DashboardService().forUser(u);
         b.getChildren().add(header("Dashboard", Feather.HOME));
-        b.getChildren().add(new Label(s.fullName() + "  •  " + s.meta()));
+
+        VBox hero = new VBox(4);
+        hero.getStyleClass().add("hero");
+        Label welcome = new Label("Welcome back, " + s.fullName());
+        welcome.getStyleClass().add("hero-title");
+        Label meta = new Label(s.meta() + "   •   Next up: " + s.nextClass());
+        meta.getStyleClass().add("hero-sub");
+        meta.setWrapText(true);
+        hero.getChildren().addAll(welcome, meta);
+        b.getChildren().add(hero);
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -356,26 +365,72 @@ public class StudentViews {
     // ---------- Analytics ----------
 
     public static VBox analytics(User u) {
-        VBox b = new VBox(8);
+        VBox b = new VBox(10);
         b.getChildren().add(header("Analytics + campus", Feather.BAR_CHART_2));
         AnalyticsService s = new AnalyticsService();
-        ListView<String> lv = new ListView<>();
-        s.topSubjects(3).forEach(t -> lv.getItems().add(t.code() + " — avg " + String.format("%.1f", t.avg())));
-        if (lv.getItems().isEmpty()) {
-            lv.getItems().add("No result data yet.");
-        }
-        b.getChildren().add(new Label("Top subjects (Heap Top-K)"));
-        b.getChildren().add(lv);
-
         ExamService exams = new ExamService();
         var res = exams.resultsFor(sid(u));
-        ListView<String> trend = new ListView<>();
-        res.stream().map(r -> r.semester()).distinct().sorted().forEach(sem ->
-                trend.getItems().add("Sem " + sem + " SGPA " + String.format("%.2f", exams.sgpa(res, sem))));
+
+        // Bar: average score by subject
+        var top = s.topSubjects(10);
+        if (!top.isEmpty()) {
+            javafx.scene.chart.CategoryAxis bx = new javafx.scene.chart.CategoryAxis();
+            javafx.scene.chart.NumberAxis by = new javafx.scene.chart.NumberAxis();
+            by.setLabel("Avg score");
+            javafx.scene.chart.BarChart<String, Number> bar = new javafx.scene.chart.BarChart<>(bx, by);
+            bar.setTitle("Average score by subject");
+            bar.setLegendVisible(false);
+            bar.setPrefHeight(260);
+            javafx.scene.chart.XYChart.Series<String, Number> bs = new javafx.scene.chart.XYChart.Series<>();
+            top.forEach(t -> bs.getData().add(new javafx.scene.chart.XYChart.Data<>(t.code(), t.avg())));
+            bar.getData().add(bs);
+            b.getChildren().add(bar);
+        }
+
+        // Line: SGPA trend + Pie: grade mix + attendance mix
+        var sems = res.stream().map(r -> r.semester()).distinct().sorted().toList();
+        HBox row = new HBox(10);
+        if (sems.size() >= 1) {
+            javafx.scene.chart.CategoryAxis lx = new javafx.scene.chart.CategoryAxis();
+            javafx.scene.chart.NumberAxis ly = new javafx.scene.chart.NumberAxis(0, 10, 2);
+            javafx.scene.chart.LineChart<String, Number> line = new javafx.scene.chart.LineChart<>(lx, ly);
+            line.setTitle("SGPA trend");
+            line.setLegendVisible(false);
+            line.setPrefHeight(240);
+            line.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(line, Priority.ALWAYS);
+            javafx.scene.chart.XYChart.Series<String, Number> ls = new javafx.scene.chart.XYChart.Series<>();
+            sems.forEach(sem -> ls.getData().add(
+                    new javafx.scene.chart.XYChart.Data<>("Sem " + sem, exams.sgpa(res, sem))));
+            line.getData().add(ls);
+            row.getChildren().add(line);
+        }
+        if (!res.isEmpty()) {
+            javafx.scene.chart.PieChart pie = new javafx.scene.chart.PieChart();
+            pie.setTitle("Grade mix");
+            pie.setPrefHeight(240);
+            pie.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(pie, Priority.ALWAYS);
+            res.stream().collect(java.util.stream.Collectors.groupingBy(
+                    com.campusos.model.Result::grade, java.util.stream.Collectors.counting()))
+                    .forEach((g, n) -> pie.getData().add(new javafx.scene.chart.PieChart.Data(g + " ×" + n, n)));
+            row.getChildren().add(pie);
+        }
+        if (!row.getChildren().isEmpty()) {
+            b.getChildren().add(row);
+        }
+
+        // Attendance donut data as summary cards
+        var att = new AttendanceService().summaryForStudent(sid(u), 75.0);
+        int present = att.stream().mapToInt(AttendanceService.Summary::present).sum();
+        int total = att.stream().mapToInt(AttendanceService.Summary::total).sum();
+        Label mix = new Label(total == 0 ? "No attendance data yet."
+                : String.format("Overall attendance: %d/%d present (%.1f%%)", present, total, present * 100.0 / total));
+        b.getChildren().add(mix);
+
         int credits = res.stream().mapToInt(r -> r.credits()).sum();
-        trend.getItems().add("Credits earned: " + credits);
-        b.getChildren().add(new Label("Semester trend + credits"));
-        b.getChildren().add(trend);
+        Label cred = new Label("Credits earned: " + credits + (res.isEmpty() ? "" : String.format("   •   CGPA %.2f", exams.cgpa(res))));
+        b.getChildren().add(cred);
 
         ListView<String> lg = new ListView<>();
         lg.setPrefHeight(110);
