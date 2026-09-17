@@ -147,6 +147,13 @@ public final class DatabaseManager {
             Path db = dbPath();
             jdbcUrl = "jdbc:sqlite:" + db.toAbsolutePath();
         }
+        // Explicit registration as belt-and-suspenders next to ServiceLoader
+        // (fat-JAR service-file merges have bitten us before).
+        try {
+            Class.forName(postgres ? "org.postgresql.Driver" : "org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            throw new SQLException("JDBC driver missing", e);
+        }
         return postgres
                 ? DriverManager.getConnection(jdbcUrl, dbUser, dbPassword)
                 : DriverManager.getConnection(jdbcUrl);

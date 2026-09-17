@@ -49,6 +49,7 @@
                 <transformer>
                   <mainClass>${mainClass}</mainClass>
                 </transformer>
+                <transformer />
               </transformers>
             </configuration>
           </execution>
