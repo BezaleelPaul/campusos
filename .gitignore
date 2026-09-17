@@ -1,0 +1,9 @@
+target/
+*.class
+*.jar
+campusos.db*
+.m2/
+.idea/
+.vscode/
+*.iml
+.DS_Store
