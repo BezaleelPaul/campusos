@@ -4,20 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CampusOS — Everything Campus. One Place.</title>
-<style>body{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 16px}code{background:#f2f2f2;padding:2px 6px;border-radius:6px}</style>
+<style>body{font-family:system-ui,sans-serif;max-width:760px;margin:40px auto;padding:0 16px;line-height:1.5}code{background:#f2f2f2;padding:2px 6px;border-radius:6px}li{margin:4px 0}</style>
 </head>
 <body>
-<h1>CampusOS</h1>
-<p>Everything Campus. One Place. — Smart College ERP (Java 21 + JavaFX + SQLite).</p>
-<p>Full app source lives in this repo. This Pages site is the live demo hub for teachers.</p>
-<h2>Demo flow</h2>
+<h1>CampusOS — all 14 phases built</h1>
+<p>Smart College ERP: Java 21 + JavaFX + SQLite. Full source + releases in the repo.</p>
+<h2>2-minute demo</h2>
 <ol>
-<li>Login (student1 / faculty1 / admin)</li>
-<li>Dashboard → Attendance + calculator → Timetable → Assignments → Exams → Results → Notifications → Search → Faculty/Admin</li>
+<li>Login <code>student1 / password123</code> → Dashboard (CGPA)</li>
+<li>Attendance (need/safe calculator) → Timetable → Assignments (priority) → Exams+Results (SGPA/CGPA)</li>
+<li>Notifications (priority) → Search (Trie) → Analytics (Top-K, Dijkstra)</li>
+<li>Login <code>faculty1</code> → Faculty tab: mark attendance, new assignment, enter marks</li>
+<li>Login <code>admin</code> → Admin tab: users</li>
 </ol>
-<h2>Run it</h2>
-<p><code>git clone &lt;this-repo&gt; && cd campusos && mvn test && mvn javafx:run</code></p>
-<p>Releases (portable JAR) appear under GitHub Releases after Phase 14.</p>
-<p><a href="https://github.com/">Back to repo</a></p>
+<h2>Run</h2>
+<p><code>git clone https://github.com/BezaleelPaul/campusos && cd campusos && mvn test && mvn javafx:run</code></p>
+<h2>DSA inside</h2>
+<p>PriorityQueue notifications, Trie search, Heap Top-K, Graph BFS/Dijkstra, sliding window, binary search, sorting.</p>
+<p><a href="https://github.com/BezaleelPaul/campusos">Repo</a> · Releases carry the portable JAR.</p>
 </body>
 </html>

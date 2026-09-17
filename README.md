@@ -1,13 +1,13 @@
 # CampusOS — Everything Campus. One Place.
 
-Cross-platform Smart College ERP (Java 21 + JavaFX + SQLite).
+Cross-platform Smart College ERP — **Java 21 + JavaFX + Maven + SQLite + JDBC + JUnit 5**. All 14 phases implemented.
 
-> Full scope: see master prompt in project chat. Built with vibe-coding phases.
-> Live demo (teachers/friends): GitHub Pages site in `web/` — full JavaFX app is in this repo with downloadable releases.
+> Live hub for teachers: GitHub Pages (`web/`) — full desktop app source + releases in this repo.
+> JavaFX cannot run inside Pages/Vercel; Pages hosts the demo site, screenshots, and download links.
 
-## Quick start (Phase 1)
+## Run
 
-Requirements: JDK 21, Maven 3.9+.
+Requirements: JDK 21 + Maven 3.9+.
 
 ```bash
 cd campusos
@@ -15,33 +15,54 @@ mvn test
 mvn javafx:run
 ```
 
-Maven portable (this machine):
+Portable Maven on builder machine:
 `C:\Users\bezal\AppData\Local\Temp\opencode\maven\apache-maven-3.9.9\bin\mvn.cmd`
 
-DB file: `~/.campusos/campusos.db` (auto-created from `schema.sql` + `seed.sql`).
+DB auto-creates at `~/.campusos/campusos.db` from `schema.sql` + `seed.sql` (first run seeds demo data).
 
-Demo users (Phase 2 auth will activate): `admin` / `faculty1` / `student1` — password `password123`.
+Demo logins (password `password123`): `student1` / `student2` / `faculty1` / `admin`
+
+## Demo flow (2 min)
+
+1. Login as `student1`
+2. Dashboard (CGPA, counts)
+3. Attendance (subject %, need/safe calculator)
+4. Timetable (Sem 3 Sec A)
+5. Assignments (priority order)
+6. Exams+Results (countdown dates, SGPA/CGPA)
+7. Notifications (priority ordered) → Search (Trie) → Analytics (Top-K heap, Dijkstra routes)
+8. Logout → login `faculty1` → Faculty tab (mark attendance, create assignment, enter marks, publish notification)
+9. Login `admin` → Admin tab (users, audit note)
 
 ## Architecture
 
 ```
-UI (JavaFX) → Controller → Service → Repository → JDBC → SQLite
+JavaFX UI (ui/) → Service (service/) → Repository/JDBC (repository/, DatabaseManager) → SQLite
+Algorithms (algorithm/): AttendanceCalculator, GradeCalculator, Trie, TopK heap, CampusGraph (BFS/Dijkstra), SlidingWindow, sorting, binary search
 ```
 
-Business logic is UI-independent so it can later be exposed via REST for web/mobile.
-See `docs/architecture.md`.
+Business logic is UI-free so it can later be exposed via REST → PostgreSQL for web/mobile.
 
-## Phases
+## DSA map
 
-- [x] Phase 1: Maven + JavaFX shell + SQLite + tests
-- [ ] Phase 2: Auth + roles
-- [ ] Phase 3: Student dashboard
-- [ ] … through Phase 14 (packaging + docs)
+| Area | Structure/Algo |
+|---|---|
+| Notifications | PriorityQueue |
+| Search | Trie + binary search |
+| Analytics | Heap Top-K, sorting |
+| Campus nav | Graph BFS/DFS, Dijkstra |
+| Trends | Sliding window |
+| Lookups | HashMap/HashSet, TreeMap-ready |
+| Undo (future) | Stack-ready service seam |
 
-Progress log: `docs/development-log.md`.
+## Java concepts
 
-## Live / sharing
+Records, enums, generics, Streams/Lambdas, Optional, Date/Time API, Executor-ready services, custom exceptions, JDBC + transactions, file I/O (DB file), JavaFX Tasks.
 
-- Source: this GitHub repo (public) — friends can clone + PR.
-- Live site: `web/index.html` deployed to GitHub Pages (static demo + screenshots + download links).
-- Releases: GitHub Releases with portable JAR (Phase 14).
+## Security
+
+Salted SHA-256 (demo; note bcrypt/Argon2 for prod), lockout after 5 fails, role checks server-side, PreparedStatement everywhere, audit_logs, no plaintext passwords.
+
+## Docs
+
+- `docs/architecture.md`, `docs/database.md`, `docs/dsa.md`, `docs/api.md`, `docs/features.md`, `docs/development-log.md`

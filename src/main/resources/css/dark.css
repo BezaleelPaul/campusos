@@ -1,0 +1,5 @@
+.root { -fx-base: #1e1e2e; -fx-background: #11111b; -fx-text-fill: #e6e6fa; }
+.label { -fx-text-fill: #e6e6fa; }
+.button { -fx-background-color: #45475a; -fx-text-fill: white; }
+.text-field { -fx-background-color: #313244; -fx-text-fill: white; }
+.list-view { -fx-background-color: #181825; }

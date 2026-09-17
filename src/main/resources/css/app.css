@@ -1,0 +1,3 @@
+.root { -fx-font-family: "Segoe UI", system-ui; -fx-font-size: 13px; }
+.label { -fx-wrap-text: true; }
+.tab-pane { -fx-padding: 8; }
