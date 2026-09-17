@@ -18,11 +18,12 @@
         <javafx.version>21.0.4</javafx.version>
         <junit.version>5.11.0</junit.version>
         <sqlite.version>3.46.1.3</sqlite.version>
-        <mainClass>com.campusos.CampusOSApplication</mainClass>
+        <mainClass>com.campusos.Launcher</mainClass>
+        <javafx.mainClass>com.campusos.CampusOSApplication</javafx.mainClass>
     </properties>
 
     <dependencies>
-        <!-- JavaFX -->
+        <!-- JavaFX (API jars) -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -32,6 +33,32 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+        </dependency>
+        <!-- JavaFX Windows natives: required inside the fat JAR so `java -jar` finds the glass platform.
+             (This release JAR is Windows-only. Linux/mac need their classifiers — see README.) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>win</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>win</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>win</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>win</classifier>
         </dependency>
 
         <!-- SQLite -->
@@ -67,7 +94,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>${mainClass}</mainClass>
+                    <mainClass>${javafx.mainClass}</mainClass>
                 </configuration>
             </plugin>
             <plugin>

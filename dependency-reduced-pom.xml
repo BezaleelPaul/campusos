@@ -21,7 +21,7 @@
         <artifactId>javafx-maven-plugin</artifactId>
         <version>0.0.8</version>
         <configuration>
-          <mainClass>${mainClass}</mainClass>
+          <mainClass>${javafx.mainClass}</mainClass>
         </configuration>
       </plugin>
       <plugin>
@@ -79,9 +79,10 @@
     </dependency>
   </dependencies>
   <properties>
-    <mainClass>com.campusos.CampusOSApplication</mainClass>
+    <mainClass>com.campusos.Launcher</mainClass>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
+    <javafx.mainClass>com.campusos.CampusOSApplication</javafx.mainClass>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <javafx.version>21.0.4</javafx.version>
     <junit.version>5.11.0</junit.version>
