@@ -1,5 +1,7 @@
 package com.campusos.ui;
 
+import atlantafx.base.theme.PrimerDark;
+import atlantafx.base.theme.PrimerLight;
 import com.campusos.model.Role;
 import com.campusos.model.User;
 import com.campusos.service.AuthService;
@@ -29,13 +31,10 @@ public class MainShell {
         });
         Button theme = new Button("Light / Dark");
         theme.setOnAction(e -> {
-            Scene sc = stage.getScene();
-            String dark = getClass().getResource("/css/dark.css").toExternalForm();
-            if (sc.getStylesheets().contains(dark)) {
-                sc.getStylesheets().remove(dark);
-            } else {
-                sc.getStylesheets().add(dark);
-            }
+            String current = javafx.application.Application.getUserAgentStylesheet();
+            String dark = new PrimerDark().getUserAgentStylesheet();
+            javafx.application.Application.setUserAgentStylesheet(
+                    dark.equals(current) ? new PrimerLight().getUserAgentStylesheet() : dark);
         });
         header.getChildren().addAll(out, theme);
         root.setTop(header);

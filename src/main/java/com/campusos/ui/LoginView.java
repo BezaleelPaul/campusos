@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import org.controlsfx.control.Notifications;
 
 import java.util.function.Consumer;
 
@@ -27,13 +28,16 @@ public class LoginView {
         Label err = new Label();
         err.getStyleClass().add("error");
         Button btn = new Button("Login");
+        btn.getStyleClass().add("accent");
         btn.setDefaultButton(true);
+        btn.setMaxWidth(Double.MAX_VALUE);
         btn.setOnAction(e -> {
             try {
                 User u = auth.login(user.getText(), pass.getText());
                 onSuccess.accept(u);
             } catch (Exception ex) {
                 err.setText(ex.getMessage());
+                Notifications.create().title("Login failed").text(ex.getMessage()).showError();
             }
         });
         box.getChildren().addAll(title, new Label("Demo accounts: student1 / faculty1 / admin"), user, pass, btn, err);
