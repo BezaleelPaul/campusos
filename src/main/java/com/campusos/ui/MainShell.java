@@ -13,6 +13,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import org.kordamp.ikonli.feather.Feather;
 
 /** Main shell: header + role-filtered tabs. Background-safe: services are quick JDBC; heavy work uses JavaFX Task. */
 public class MainShell {
@@ -20,16 +21,16 @@ public class MainShell {
 
     public void show(Stage stage, User user) {
         BorderPane root = new BorderPane();
-        HBox header = new HBox(12, new Label("CampusOS  •  " + user.username() + " [" + user.role() + "]"));
+        HBox header = new HBox(12, Icons.of(Feather.GRID, 18), new Label("CampusOS  •  " + user.username() + " [" + user.role() + "]"));
         header.getStyleClass().add("app-header");
-        Button out = new Button("Logout");
+        Button out = new Button("Logout", Icons.of(Feather.LOG_OUT));
         out.setOnAction(e -> {
             auth.logout();
             Scene sc = new Scene(new LoginView().build(u -> show(stage, u)), 480, 420);
             sc.getStylesheets().add(getClass().getResource("/css/app.css").toExternalForm());
             stage.setScene(sc);
         });
-        Button theme = new Button("Light / Dark");
+        Button theme = new Button("Light / Dark", Icons.of(Feather.SUN));
         theme.setOnAction(e -> {
             String current = javafx.application.Application.getUserAgentStylesheet();
             String dark = new PrimerDark().getUserAgentStylesheet();
@@ -40,22 +41,22 @@ public class MainShell {
         root.setTop(header);
 
         TabPane tabs = new TabPane();
-        tabs.getTabs().add(tab("Dashboard", StudentViews.dashboard(user)));
-        tabs.getTabs().add(tab("Attendance", StudentViews.attendance(user)));
-        tabs.getTabs().add(tab("Timetable", StudentViews.timetable()));
-        tabs.getTabs().add(tab("Assignments", StudentViews.assignments()));
-        tabs.getTabs().add(tab("Exams+Results", StudentViews.exams(user)));
-        tabs.getTabs().add(tab("Notifications", StudentViews.notifications(user)));
-        tabs.getTabs().add(tab("Search", StudentViews.search()));
-        tabs.getTabs().add(tab("Analytics+DSA", StudentViews.analytics()));
+        tabs.getTabs().add(tab("Dashboard", Feather.HOME, StudentViews.dashboard(user)));
+        tabs.getTabs().add(tab("Attendance", Feather.ACTIVITY, StudentViews.attendance(user)));
+        tabs.getTabs().add(tab("Timetable", Feather.CALENDAR, StudentViews.timetable(user)));
+        tabs.getTabs().add(tab("Assignments", Feather.FILE_TEXT, StudentViews.assignments()));
+        tabs.getTabs().add(tab("Exams+Results", Feather.BOOK, StudentViews.exams(user)));
+        tabs.getTabs().add(tab("Notifications", Feather.BELL, StudentViews.notifications(user)));
+        tabs.getTabs().add(tab("Search", Feather.SEARCH, StudentViews.search()));
+        tabs.getTabs().add(tab("Analytics+DSA", Feather.BAR_CHART_2, StudentViews.analytics(user)));
         if (user.role() == Role.FACULTY || user.role() == Role.ADMIN || user.role() == Role.SUPER_ADMIN) {
-            tabs.getTabs().add(tab("Faculty", StaffViews.faculty()));
+            tabs.getTabs().add(tab("Faculty", Feather.BRIEFCASE, StaffViews.faculty()));
         }
         if (user.role() == Role.ADMIN || user.role() == Role.SUPER_ADMIN) {
             try {
-                tabs.getTabs().add(tab("Admin", StaffViews.admin(auth)));
+                tabs.getTabs().add(tab("Admin", Feather.SETTINGS, StaffViews.admin(auth)));
             } catch (Exception ex) {
-                tabs.getTabs().add(tab("Admin", new javafx.scene.layout.VBox(new Label(ex.getMessage()))));
+                tabs.getTabs().add(tab("Admin", Feather.SETTINGS, new javafx.scene.layout.VBox(new Label(ex.getMessage()))));
             }
         }
         root.setCenter(tabs);
@@ -66,8 +67,9 @@ public class MainShell {
         stage.show();
     }
 
-    private static Tab tab(String name, javafx.scene.Parent content) {
+    private static Tab tab(String name, Feather icon, javafx.scene.Parent content) {
         Tab t = new Tab(name, content);
+        t.setGraphic(Icons.of(icon));
         t.setClosable(false);
         return t;
     }
