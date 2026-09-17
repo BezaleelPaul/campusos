@@ -172,18 +172,25 @@ public class StudentViews {
         int sem = student.map(s -> s.semester()).orElse(3);
         String sec = student.map(s -> s.section()).orElse("A");
         int today = LocalDate.now().getDayOfWeek().getValue();
-        ListView<String> lv = new ListView<>();
         var rows = new TimetableService().week(sem, sec);
-        rows.forEach(t -> lv.getItems().add(
-                (t.dayOfWeek() == today ? "▶ TODAY  " : "") + DAYS[t.dayOfWeek()] + "  " + t.startTime() + "–" + t.endTime()
-                        + "  " + subjName(map, t.subjectId()) + "  •  " + t.facultyName() + "  •  " + t.room()));
-        if (rows.isEmpty()) {
-            lv.getItems().add("No timetable entries for Sem " + sem + " Sec " + sec + ".");
-        }
+        javafx.scene.control.TableView<TimetableRow> table = new javafx.scene.control.TableView<>();
+        table.getColumns().add(UiKit.col("Day", TimetableRow::day, 110));
+        table.getColumns().add(UiKit.col("Time", TimetableRow::time, 130));
+        table.getColumns().add(UiKit.col("Subject", TimetableRow::subject, 240));
+        table.getColumns().add(UiKit.col("Faculty", TimetableRow::faculty, 150));
+        table.getColumns().add(UiKit.col("Room", TimetableRow::room, 90));
+        table.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY);
+        rows.forEach(t -> table.getItems().add(new TimetableRow(
+                (t.dayOfWeek() == today ? "▶ " : "") + DAYS[t.dayOfWeek()],
+                t.startTime() + "–" + t.endTime(),
+                subjName(map, t.subjectId()), t.facultyName(), t.room())));
+        table.setPlaceholder(new Label("No timetable entries for Sem " + sem + " Sec " + sec + "."));
         b.getChildren().add(new Label("Sem " + sem + " Sec " + sec + " — " + rows.size() + " periods/week"));
-        b.getChildren().add(lv);
+        b.getChildren().add(table);
         return b;
     }
+
+    private record TimetableRow(String day, String time, String subject, String faculty, String room) {}
 
     // ---------- Assignments ----------
 
@@ -193,37 +200,52 @@ public class StudentViews {
         AssignmentService s = new AssignmentService();
         ComboBox<String> filter = new ComboBox<>(FXCollections.observableArrayList("ALL", "PENDING", "IN_PROGRESS", "SUBMITTED", "OVERDUE"));
         filter.setValue("ALL");
-        ListView<String> lv = new ListView<>();
+        javafx.scene.control.TableView<com.campusos.model.Assignment> table = new javafx.scene.control.TableView<>();
         Map<Long, Subject> map = subjects();
-        Runnable refresh = () -> {
-            lv.getItems().clear();
-            s.byPriority().stream()
-                    .filter(a -> "ALL".equals(filter.getValue()) || a.status().equals(filter.getValue()))
-                    .forEach(a -> {
-                        Subject sub = map.get(a.subjectId());
-                        lv.getItems().add(a.id() + " | " + a.deadline() + " [" + a.priority() + "/" + a.status() + "] "
-                                + (sub == null ? "" : sub.code() + " ") + a.title());
-                    });
-            if (lv.getItems().isEmpty()) {
-                lv.getItems().add("Nothing here — try another filter.");
+        table.getColumns().add(UiKit.col("Due", a -> a.deadline().toString(), 110));
+        table.getColumns().add(UiKit.col("Subject", a -> {
+            Subject sub = map.get(a.subjectId());
+            return sub == null ? "" : sub.code();
+        }, 90));
+        table.getColumns().add(UiKit.col("Title", com.campusos.model.Assignment::title, 260));
+        table.getColumns().add(UiKit.col("Priority", com.campusos.model.Assignment::priority, 90));
+        table.getColumns().add(UiKit.col("Status", com.campusos.model.Assignment::status, 110));
+        table.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setRowFactory(tv -> new javafx.scene.control.TableRow<>() {
+            @Override
+            protected void updateItem(com.campusos.model.Assignment a, boolean empty) {
+                super.updateItem(a, empty);
+                if (empty || a == null) {
+                    setStyle("");
+                } else if (a.deadline().isBefore(LocalDate.now()) && !"SUBMITTED".equals(a.status())) {
+                    setStyle("-fx-background-color: rgba(220,38,38,0.10);");
+                } else if ("SUBMITTED".equals(a.status())) {
+                    setStyle("-fx-background-color: rgba(22,163,74,0.08);");
+                } else {
+                    setStyle("");
+                }
             }
+        });
+        Runnable refresh = () -> {
+            table.getItems().setAll(s.byPriority().stream()
+                    .filter(a -> "ALL".equals(filter.getValue()) || a.status().equals(filter.getValue())).toList());
         };
         filter.setOnAction(e -> refresh.run());
         refresh.run();
+        table.setPlaceholder(new Label("Nothing here — try another filter."));
         Button done = btn("Mark selected submitted", Feather.CHECK_SQUARE, "success");
         done.setOnAction(e -> {
-            String sel = lv.getSelectionModel().getSelectedItem();
-            if (sel == null || !sel.contains("|")) {
+            var sel = table.getSelectionModel().getSelectedItem();
+            if (sel == null) {
                 Notifications.create().title("Assignments").text("Select an assignment first.").showWarning();
                 return;
             }
-            long id = Long.parseLong(sel.split("\\|")[0].strip());
-            s.setStatus(id, "SUBMITTED");
+            s.setStatus(sel.id(), "SUBMITTED");
             refresh.run();
-            Notifications.create().title("Submitted").text("Assignment #" + id + " marked submitted.").showInformation();
+            Notifications.create().title("Submitted").text(sel.title() + " marked submitted.").showInformation();
         });
         b.getChildren().add(new HBox(8, new Label("Status:"), filter, done));
-        b.getChildren().add(lv);
+        b.getChildren().add(table);
         return b;
     }
 
@@ -234,34 +256,43 @@ public class StudentViews {
         b.getChildren().add(header("Exams + Results", Feather.BOOK));
         ExamService s = new ExamService();
         Map<Long, Subject> map = subjects();
-        ListView<String> lv = new ListView<>();
-        s.upcoming().forEach(e -> {
-            long days = ChronoUnit.DAYS.between(LocalDate.now(), e.date());
-            lv.getItems().add((days <= 7 ? "⏰ " : "") + e.date() + " (in " + days + "d)  " + e.examType()
-                    + "  " + subjName(map, e.subjectId()) + "  •  " + e.startTime() + "  •  " + e.room());
-        });
-        if (lv.getItems().isEmpty()) {
-            lv.getItems().add("No upcoming exams.");
-        }
+        javafx.scene.control.TableView<com.campusos.model.Exam> table = new javafx.scene.control.TableView<>();
+        table.getColumns().add(UiKit.col("Date", e -> e.date().toString(), 110));
+        table.getColumns().add(UiKit.col("In", e -> ChronoUnit.DAYS.between(LocalDate.now(), e.date()) + "d", 60));
+        table.getColumns().add(UiKit.col("Type", com.campusos.model.Exam::examType, 110));
+        table.getColumns().add(UiKit.col("Subject", e -> subjName(map, e.subjectId()), 220));
+        table.getColumns().add(UiKit.col("Time", com.campusos.model.Exam::startTime, 80));
+        table.getColumns().add(UiKit.col("Room", com.campusos.model.Exam::room, 90));
+        table.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY);
+        table.getItems().setAll(s.upcoming());
+        table.setPlaceholder(new Label("No upcoming exams."));
         b.getChildren().add(new Label("Upcoming"));
-        b.getChildren().add(lv);
+        b.getChildren().add(table);
 
-        ListView<String> lr = new ListView<>();
+        javafx.scene.control.TableView<com.campusos.model.Result> rt = new javafx.scene.control.TableView<>();
+        rt.getColumns().add(UiKit.col("Sem", r -> String.valueOf(r.semester()), 60));
+        rt.getColumns().add(UiKit.col("Subject", r -> subjName(map, r.subjectId()), 220));
+        rt.getColumns().add(UiKit.col("Internal", r -> String.valueOf(r.internalMarks()), 90));
+        rt.getColumns().add(UiKit.col("External", r -> String.valueOf(r.externalMarks()), 90));
+        rt.getColumns().add(UiKit.col("Total", r -> String.valueOf(r.total()), 80));
+        rt.getColumns().add(UiKit.col("Grade", com.campusos.model.Result::grade, 80));
+        rt.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY);
         var res = s.resultsFor(sid(u));
-        res.forEach(r -> lr.getItems().add("Sem " + r.semester() + "  " + subjName(map, r.subjectId())
-                + "  int " + r.internalMarks() + " + ext " + r.externalMarks() + " = " + r.total() + "  " + r.grade()));
+        rt.getItems().setAll(res);
+        rt.setPlaceholder(new Label("No results yet."));
+        Label summary = new Label();
         if (!res.isEmpty()) {
             int latest = res.stream().mapToInt(r -> r.semester()).max().orElse(0);
-            lr.getItems().add(String.format("SGPA (sem %d) = %.2f   •   CGPA = %.2f", latest, s.sgpa(res, latest), s.cgpa(res)));
             var best = res.stream().max(java.util.Comparator.comparingDouble(r -> r.total()));
             var worst = res.stream().min(java.util.Comparator.comparingDouble(r -> r.total()));
-            best.ifPresent(x -> lr.getItems().add("Strongest: " + subjName(map, x.subjectId()) + " (" + x.total() + ")"));
-            worst.ifPresent(x -> lr.getItems().add("Needs work: " + subjName(map, x.subjectId()) + " (" + x.total() + ")"));
-        } else {
-            lr.getItems().add("No results yet.");
+            summary.setText(String.format("SGPA (sem %d) %.2f   •   CGPA %.2f   •   Strongest: %s   •   Needs work: %s",
+                    latest, s.sgpa(res, latest), s.cgpa(res),
+                    best.map(x -> subjName(map, x.subjectId())).orElse("—"),
+                    worst.map(x -> subjName(map, x.subjectId())).orElse("—")));
         }
         b.getChildren().add(new Label("Results"));
-        b.getChildren().add(lr);
+        b.getChildren().add(rt);
+        b.getChildren().add(summary);
         return b;
     }
 

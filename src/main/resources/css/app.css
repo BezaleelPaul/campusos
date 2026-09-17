@@ -1,71 +1,64 @@
-/* CampusOS modern light theme */
+/* CampusOS Fluent accents on top of JMetro. JMetro paints controls; this paints navigation + cards. */
 .root {
-    -fx-font-family: "Segoe UI", "Inter", system-ui, sans-serif;
+    -fx-font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
     -fx-font-size: 13.5px;
-    -fx-base: #f4f6fb;
-    -fx-background: #f4f6fb;
+    -fx-accent: #0067c0;
 }
-.app-header {
-    -fx-background-color: linear-gradient(to right, #4f46e5, #7c3aed);
-    -fx-padding: 14 18;
-    -fx-spacing: 12;
+
+/* ---- Navigation rail (Win11 Settings-style) ---- */
+.side-nav {
+    -fx-background-color: #f3f3f3;
+    -fx-padding: 12 10;
+    -fx-spacing: 3;
+    -fx-pref-width: 232;
+}
+.dark .side-nav { -fx-background-color: #202020; }
+.nav-logo {
+    -fx-font-size: 19px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 8 0 8;
+}
+.nav-sub {
+    -fx-font-size: 11px;
+    -fx-opacity: 0.65;
+    -fx-padding: 0 8 10 8;
+}
+.nav-btn {
+    -fx-background-color: transparent;
     -fx-alignment: center-left;
+    -fx-padding: 9 12;
+    -fx-background-radius: 6;
+    -fx-font-size: 13.5px;
 }
-.app-header .label {
-    -fx-text-fill: white;
-    -fx-font-size: 15px;
+.nav-btn:hover { -fx-background-color: rgba(0, 0, 0, 0.06); }
+.dark .nav-btn:hover { -fx-background-color: rgba(255, 255, 255, 0.08); }
+.nav-btn-active {
+    -fx-background-color: rgba(0, 103, 192, 0.12);
+    -fx-border-color: #0067c0;
+    -fx-border-width: 0 0 0 3;
     -fx-font-weight: bold;
 }
-.app-header .button {
-    -fx-background-color: rgba(255,255,255,0.18);
-    -fx-text-fill: white;
-    -fx-background-radius: 8;
-    -fx-padding: 6 14;
+.nav-user {
+    -fx-padding: 10 8;
+    -fx-font-size: 12px;
+    -fx-opacity: 0.85;
 }
-.app-header .button:hover { -fx-background-color: rgba(255,255,255,0.32); }
-.tab-pane { -fx-padding: 10; -fx-background-color: transparent; }
-.tab-pane .tab-header-area .tab {
-    -fx-background-color: white;
-    -fx-background-radius: 10 10 0 0;
-    -fx-padding: 8 16;
-}
-.tab-pane .tab-header-area .tab:selected {
-    -fx-background-color: #eef2ff;
-    -fx-border-color: #4f46e5;
-    -fx-border-width: 0 0 3 0;
-}
-.tab-content-area {
-    -fx-background-color: white;
-    -fx-background-radius: 0 12 12 12;
-    -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, rgba(79,70,229,0.12), 12, 0, 0, 3);
-}
+
+/* ---- Content ---- */
+.content-pane { -fx-padding: 0; }
+.content-scroll { -fx-background-color: transparent; }
+.section-title { -fx-font-size: 17px; -fx-font-weight: semibold; }
 .card {
-    -fx-background-color: #f8faff;
-    -fx-border-color: #e2e8f0;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
-    -fx-padding: 14;
-}
-.button {
-    -fx-background-color: #4f46e5;
-    -fx-text-fill: white;
-    -fx-background-radius: 8;
-    -fx-padding: 7 16;
-    -fx-cursor: hand;
-}
-.button:hover { -fx-background-color: #4338ca; }
-.text-field, .password-field {
-    -fx-background-radius: 8;
+    -fx-background-color: rgba(255, 255, 255, 0.7);
+    -fx-border-color: rgba(0, 0, 0, 0.08);
     -fx-border-radius: 8;
-    -fx-border-color: #c7d2fe;
-    -fx-padding: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
 }
-.list-view {
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-color: #e2e8f0;
+.dark .card {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-border-color: rgba(255, 255, 255, 0.08);
 }
-.list-cell:filled:selected { -fx-background-color: #e0e7ff; -fx-text-fill: #1e1b4b; }
-.section-title { -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #312e81; }
-.error { -fx-text-fill: #dc2626; }
+.error { -fx-text-fill: #d13438; }
+.dark .error { -fx-text-fill: #f1707b; }

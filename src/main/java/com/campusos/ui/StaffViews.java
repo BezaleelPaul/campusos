@@ -153,12 +153,15 @@ public class StaffViews {
         b.getChildren().add(header("Admin console", Feather.SETTINGS));
         auth.requireRole(Role.ADMIN, Role.SUPER_ADMIN);
         UserRepository repo = new UserRepository();
-        ListView<String> lv = new ListView<>();
-        Runnable refresh = () -> {
-            lv.getItems().clear();
-            repo.findAll().forEach(u -> lv.getItems().add(u.id() + " | " + u.username() + "  •  " + u.role() + "  •  " + u.status()
-                    + (u.failedAttempts() > 0 ? "  •  fails " + u.failedAttempts() : "")));
-        };
+        javafx.scene.control.TableView<com.campusos.model.User> table = new javafx.scene.control.TableView<>();
+        table.getColumns().add(UiKit.col("ID", u -> String.valueOf(u.id()), 60));
+        table.getColumns().add(UiKit.col("Username", com.campusos.model.User::username, 150));
+        table.getColumns().add(UiKit.col("Role", u -> u.role().name(), 120));
+        table.getColumns().add(UiKit.col("Status", com.campusos.model.User::status, 110));
+        table.getColumns().add(UiKit.col("Fails", u -> String.valueOf(u.failedAttempts()), 70));
+        table.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setPlaceholder(new Label("No users."));
+        Runnable refresh = () -> table.getItems().setAll(repo.findAll());
         refresh.run();
         Label msg = new Label();
         msg.getStyleClass().add("error");
@@ -185,16 +188,15 @@ public class StaffViews {
         });
         Button unlock = btn("Unlock selected", Feather.CHECK, "success");
         unlock.setOnAction(e -> {
-            String sel = lv.getSelectionModel().getSelectedItem();
+            var sel = table.getSelectionModel().getSelectedItem();
             if (sel == null) {
                 return;
             }
-            String username = sel.split("\\|")[1].split("•")[0].strip();
-            repo.resetFailed(username);
+            repo.resetFailed(sel.username());
             refresh.run();
-            toast("Users", username + " unlocked.");
+            toast("Users", sel.username() + " unlocked.");
         });
-        VBox usersCard = new VBox(6, new Label("Users (select a row to unlock a locked account)"), lv,
+        VBox usersCard = new VBox(6, new Label("Users (select a row to unlock a locked account)"), table,
                 new HBox(6, nu, np, role, add, unlock), msg);
         usersCard.getStyleClass().add("card");
 
